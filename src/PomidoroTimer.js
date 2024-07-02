@@ -51,7 +51,11 @@ export const PomidoroTimer = () => {
 
     return (
         <View style={classes.container}>
-            <Text style={classes.title}>{onBreak && isActive ? 'Перерыв' : title}</Text>
+
+
+            <ImageBackground resizeMode="cover" style={classes.imageStatus} source={isActive ? require('../assets/fad2e730bb3a7bb0ecea4e446e283920.gif') : require('../assets/pong-pause.gif')}>
+            </ImageBackground>
+
             <Text style={classes.text}>{onBreak ? formatTime(breakTimer) : formatTime(mainTimer)}</Text>
             <TouchableOpacity onPress={toggle}>
                 <ImageBackground resizeMode="cover" style={classes.image} source={isActive ? require('../assets/pause.png') : require('../assets/play.png')}>
@@ -81,6 +85,14 @@ const classes = StyleSheet.create({
         width: 100,
         height: 100
     },
+    imageStatus: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 300,
+        height: 300,
+        borderRadius: 50
+    },
+
     text: {
         fontSize: 100,
         color: 'white'
