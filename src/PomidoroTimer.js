@@ -1,100 +1,132 @@
-import React, { useState, useEffect } from 'react'
-import { Text, View, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native'
-
-
+import React, { useState, useEffect, useRef } from 'react';
+import { Text, View, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { Audio } from 'expo-av';
+import { useKeepAwake } from 'expo-keep-awake';
 
 export const PomidoroTimer = () => {
-    const [mainTimer, setMainTimer] = useState(1 * 60);
+    const [mainTimer, setMainTimer] = useState(20 * 60);
     const [breakTimer, setBreakTimer] = useState(5 * 60);
     const [isActive, setIsActive] = useState(false);
     const [onBreak, setOnBreak] = useState(false);
-    const [title, setTitle] = useState('')
+    const intervalRef = useRef(null);
+    const soundRef = useRef(null);
 
-
+    useKeepAwake();
 
     useEffect(() => {
-        let interval = null;
-        if (isActive) {
-            interval = setInterval(() => {
-                if (!onBreak && mainTimer > 0) {
-                    setMainTimer(mainTimer => mainTimer - 1)
-                } else if (!onBreak && mainTimer === 0) {
-                    setOnBreak(true)
-                } else if (onBreak && breakTimer > 0) {
-                    setBreakTimer(breakTimer => breakTimer - 1)
-                } else if (onBreak && breakTimer === 0) {
-                    setIsActive(false);
+        const loadSound = async () => {
+            const { sound } = await Audio.Sound.createAsync(
+                require('../assets/zvuk-na-sms-attractive-sms.mp3')
+            );
+            soundRef.current = sound;
+        };
 
-                    setOnBreak(false);
-                    setMainTimer(25 * 60);
-                    setBreakTimer(5 * 60);
+        loadSound();
+
+        return () => {
+            if (soundRef.current) {
+                soundRef.current.unloadAsync();
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (isActive) {
+            intervalRef.current = setInterval(() => {
+                if (onBreak) {
+                    setBreakTimer(breakTimer => {
+                        if (breakTimer === 1) {
+                            playSound();
+                            setIsActive(false);
+                            setOnBreak(false);
+                            setMainTimer(25 * 60);
+                            setBreakTimer(5 * 60);
+                            clearInterval(intervalRef.current);
+                        }
+                        return breakTimer - 1;
+                    });
+                } else {
+                    setMainTimer(mainTimer => {
+                        if (mainTimer === 1) {
+                            playSound();
+                            setOnBreak(true);
+                        }
+                        return mainTimer - 1;
+                    });
                 }
             }, 1000);
-        } else if (!isActive && (mainTimer !== 0 || breakTimer !== 0)) {
-            clearInterval(interval);
-
+        } else {
+            clearInterval(intervalRef.current);
         }
-        return () => clearInterval(interval);
-    }, [isActive, mainTimer, breakTimer, onBreak]);
+        return () => clearInterval(intervalRef.current);
+    }, [isActive, onBreak]);
 
+    const playSound = async () => {
+        if (soundRef.current) {
+            await soundRef.current.replayAsync();
+        }
+    };
 
     const toggle = () => {
-        isActive ? setTitle('Остановка') : setTitle('Идёт работа')
-        setIsActive(!isActive)
-    };
-    const formatTime = (time) => {
-        const minutes = Math.floor(time / 60)
-        const seconds = time % 60
 
-        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-    }
+        setIsActive(!isActive);
+    };
+
+    const formatTime = (time) => {
+        const minutes = Math.floor(time / 60);
+        const seconds = time % 60;
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
 
     return (
-        <View style={classes.container}>
-
-
-            <ImageBackground resizeMode="cover" style={classes.imageStatus} source={isActive ? require('../assets/fad2e730bb3a7bb0ecea4e446e283920.gif') : require('../assets/pong-pause.gif')}>
-            </ImageBackground>
-
-            <Text style={classes.text}>{onBreak ? formatTime(breakTimer) : formatTime(mainTimer)}</Text>
+        <View style={styles.container}>
+            <ImageBackground
+                resizeMode="cover"
+                style={styles.imageStatus}
+                source={isActive ? require('../assets/fad2e730bb3a7bb0ecea4e446e283920.gif') : require('../assets/pong-pause.gif')}
+            />
+            <Text style={styles.text}>{onBreak ? formatTime(breakTimer) : formatTime(mainTimer)}</Text>
             <TouchableOpacity onPress={toggle}>
-                <ImageBackground resizeMode="cover" style={classes.image} source={isActive ? require('../assets/pause.png') : require('../assets/play.png')}>
-                </ImageBackground>
+                <ImageBackground
+                    resizeMode="cover"
+                    style={styles.image}
+                    source={isActive ? require('../assets/pause.png') : require('../assets/play.png')}
+                />
             </TouchableOpacity>
-
-
         </View>
-    )
-}
+    );
+};
 
-const classes = StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
-        flexDirection: '',
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100%'
 
+        borderRadius: 50,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        borderColor: 'white'
     },
     title: {
         fontSize: 40,
-        color: 'white'
+        color: 'white',
     },
     image: {
         justifyContent: 'center',
         alignItems: 'center',
         width: 100,
-        height: 100
+        height: 100,
     },
     imageStatus: {
         justifyContent: 'center',
         alignItems: 'center',
         width: 300,
         height: 300,
-        borderRadius: 50
+        borderRadius: 150,
     },
-
     text: {
         fontSize: 100,
-        color: 'white'
-    }
+        color: 'white',
+    },
 });

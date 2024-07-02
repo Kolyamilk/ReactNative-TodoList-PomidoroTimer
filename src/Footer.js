@@ -13,7 +13,7 @@ export const Footer = ({ changeTab }) => {
             </TouchableOpacity>
 
             <TouchableOpacity TouchableOpacity={0.2} onPress={() => changeTab('Pomidoro Timer')}>
-                <Image source={require('../assets/play.png')} style={styles.image} />
+                <Image source={require('../assets/pomidorka.png')} style={styles.image} />
             </TouchableOpacity>
             
 
