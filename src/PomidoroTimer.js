@@ -29,7 +29,6 @@ export const PomidoroTimer = () => {
             }
         };
     }, []);
-
     useEffect(() => {
         if (isActive) {
             intervalRef.current = setInterval(() => {
