@@ -1,7 +1,7 @@
 <style>
 img {
     width: 100px;
-    height: auto;
+    height: 200px;
 }
 </style>
 ![Скриншоты](assets/5424785093941123953.jpg)
