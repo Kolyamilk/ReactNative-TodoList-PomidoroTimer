@@ -1,6 +1,6 @@
 <style>
 img {
-    width: 300px;
+    width: 100px;
     height: auto;
 }
 </style>
